@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: node-cordon
+  namespace: ops
+spec:
+  schedule: "0 * * * *"  # 每小时执行
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          serviceAccountName: node-cordon
+          restartPolicy: OnFailure
+          containers:
+            - name: node-cordon
+              image: your-registry/node-cordon:latest  # 替换为实际镜像地址
+              env:
+                - name: HIGH_THRESHOLD
+                  value: "85"
+                - name: LOW_THRESHOLD
+                  value: "70"
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 100m
+                  memory: 128Mi
